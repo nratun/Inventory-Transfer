@@ -11,29 +11,33 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.vyltx.inventorytransfer.networking.ModNetworking;
 import org.slf4j.Logger;
 
-// The value here should match an entry in the META-INF/mods.toml file
+/**
+ * InventoryTransfer Mod
+ * Allows players to send items from their inventory or any open container (e.g. chest)
+ * to another player currently in the world.
+ */
 @Mod(InventoryTransfer.MOD_ID)
 public class InventoryTransfer
 {
-    // Define mod id in a common place for everything to reference
     public static final String MOD_ID = "inventory_transfer";
-    // Directly reference a slf4j logger
-    private static final Logger LOGGER = LogUtils.getLogger();
+    public static final Logger LOGGER = LogUtils.getLogger();
 
     public InventoryTransfer(FMLJavaModLoadingContext context)
     {
         IEventBus modEventBus = context.getModEventBus();
-
-        // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
     }
 
     private void commonSetup(final FMLCommonSetupEvent event)
     {
-        //event.enqueueWork(ModNetworking::register);
+        // May have an issue being in enqueue work, may need to register it outside of it
+        event.enqueueWork(ModNetworking::register);
     }
+
+
 
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
