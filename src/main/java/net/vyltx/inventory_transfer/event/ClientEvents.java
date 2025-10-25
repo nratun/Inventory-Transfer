@@ -1,25 +1,22 @@
-package net.vyltx.inventorytransfer.event;
+package net.vyltx.inventory_transfer.event;
 
 import net.minecraft.client.KeyMapping;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
+import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.vyltx.inventorytransfer.client.screen.PlayerSelectScreen;
-import net.vyltx.inventorytransfer.networking.ModNetworking;
-import net.vyltx.inventorytransfer.networking.packets.C2SPacket;
-import net.vyltx.inventorytransfer.InventoryTransfer;
+import net.vyltx.inventory_transfer.client.screen.PlayerSelectScreen;
+import net.vyltx.inventory_transfer.networking.ModNetworking;
+import net.vyltx.inventory_transfer.networking.packets.ItemTransferPacket;
+import net.vyltx.inventory_transfer.InventoryTransfer;
 import org.lwjgl.glfw.GLFW;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.ItemStack;
 
 import java.util.UUID;
 
@@ -68,18 +65,39 @@ public class ClientEvents {
             // Item slot has something to send (not empty) ✅
             // Target player is online
             // Target player is selected to receive items (no target, no sending) ✅
-            // Target player has inventory space to receive item (or can drop it at their feet)
+            // Target player has inventory space to receive item (or can drop it at their feet, will consider that at a later date)
             Minecraft mc = Minecraft.getInstance();
 
             if (menuKey.consumeClick() && mc.player != null) {
                 Minecraft.getInstance().setScreen(new PlayerSelectScreen());
             }
 
-            if (sendKey.consumeClick() && mc.player != null && mc.screen instanceof AbstractContainerScreen<?> screen) {
+            if (sendKey.consumeClick() && mc.player != null && mc.screen == null) {
+                InventoryTransfer.LOGGER.info("G key pressed");
+                //Handle item transfer using item in your hand
+            }
+        }
+
+        @SubscribeEvent
+        public static void onGuiKeyPress(ScreenEvent.KeyPressed event) {
+            Minecraft mc = Minecraft.getInstance();
+            if (mc.player == null) return;
+
+            // Make sure the GUI is a container (chest, inventory, etc)
+            if (!(event.getScreen() instanceof AbstractContainerScreen<?> screen)) return;
+
+            // Check if the pressed key matches our send keybind
+            if (sendKey.matches(event.getKeyCode(), event.getScanCode())) {
+                InventoryTransfer.LOGGER.info("G key pressed inside container screen: " + screen.getClass().getSimpleName());
+
+                // You can now trigger your item sending logic here
+                // For example:
+                // ModNetworking.sendToServer(new ItemTransferPacket(...));
                 Slot hoveredSlot = screen.getSlotUnderMouse();
 
                 if (hoveredSlot != null && hoveredSlot.hasItem()) {
                     /*
+                    // This could maybe be added for wuality, but I think it would be preferable without it
                     // Check that player isn’t already carrying something
                     ItemStack carried = mc.player.containerMenu.getCarried();
                     if (!carried.isEmpty()) {
@@ -87,6 +105,8 @@ public class ClientEvents {
                         return;
                     }
                     */
+                    // FIXME most likely need to do some sort of packet to actually check the online status/availability of the target
+                    // if checking target status here, can consider removing it from ItemTransferPacket
                     if (targetUUID == null) {
                         InventoryTransfer.LOGGER.warn("Target player not found or offline. Cancelling send.");
                         mc.player.displayClientMessage(Component.literal("No target player selected."), true);
@@ -95,8 +115,9 @@ public class ClientEvents {
 
                     // If all good, send packet with hovered slot index and target player UUID
                     int slotId = hoveredSlot.index;
-                    ModNetworking.sendToServer(new C2SPacket(slotId, targetUUID));
+                    ModNetworking.sendToServer(new ItemTransferPacket(slotId, targetUUID));
                 }
+                event.setCanceled(true); // prevent the GUI from eating the key press if needed
             }
         }
     }

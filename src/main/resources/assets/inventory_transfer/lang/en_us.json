@@ -2,6 +2,6 @@
   "key.inventory_transfer.send_item": "Transfer Item",
   "key.categories.inventory_transfer": "Inventory Transfer",
   "key.inventory_transfer.open_menu": "Player Menu",
-  "gui.inventory_transfer.player_select_screen": "Player Select Screen",
+  "gui.inventory_transfer.player_select_screen": "Select Player",
   "gui.inventory_transfer.player_select_screen.button.select_button": "Select"
 }

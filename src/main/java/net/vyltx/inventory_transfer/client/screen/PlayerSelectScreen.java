@@ -1,4 +1,4 @@
-package net.vyltx.inventorytransfer.client.screen;
+package net.vyltx.inventory_transfer.client.screen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -9,11 +9,10 @@ import net.minecraft.server.players.PlayerList;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.client.gui.widget.ScrollPanel;
-import net.vyltx.inventorytransfer.InventoryTransfer;
+import net.vyltx.inventory_transfer.InventoryTransfer;
+import net.vyltx.inventory_transfer.networking.ModNetworking;
+import net.vyltx.inventory_transfer.networking.packets.TargetSelectPacket;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
 
 public class PlayerSelectScreen extends Screen {
     private static final Component TITLE = Component.translatable("gui." + InventoryTransfer.MOD_ID + ".player_select_screen");
@@ -21,7 +20,7 @@ public class PlayerSelectScreen extends Screen {
     private static final Component INPUT = Component.translatable("gui." + InventoryTransfer.MOD_ID + ".player_select_screen.editbox.input");
 
     // Used to render textures, currently using default minecraft texture
-    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(InventoryTransfer.MOD_ID, "textures/gui/options_background.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(InventoryTransfer.MOD_ID, "textures/gui/player_select_screen.png");
 
     private final int imgWidth, imgHeight;
     private  int leftPos, topPos;
@@ -32,8 +31,8 @@ public class PlayerSelectScreen extends Screen {
 
     public PlayerSelectScreen() {
         super(TITLE);
-        this.imgWidth = 176;
-        this.imgHeight = 166;
+        this.imgWidth = 190; //190
+        this.imgHeight = 65; //65
     }
 
     @Override
@@ -52,12 +51,12 @@ public class PlayerSelectScreen extends Screen {
                                 SELECT_BUTTON,
                                 this::handleSelectButton
                         )
-                        .bounds(this.leftPos + 8, this.topPos + 8, 40, 20)
+                        .bounds(this.leftPos + 130, this.topPos + 30, 48, 22)
                         .tooltip(Tooltip.create(SELECT_BUTTON))
                         .build()
         );
         this.textbox = addRenderableWidget(
-                new EditBox(this.font, this.leftPos + 8, this.topPos + 40, 120, 20, INPUT)
+                new EditBox(this.font, this.leftPos + 12, this.topPos + 30, 110, 20, INPUT)
         );
         this.textbox.setMaxLength(16); // Names are not longer than 16 chars
         //this.textbox.setFocused(true);
@@ -83,16 +82,16 @@ public class PlayerSelectScreen extends Screen {
 
     private void handleSelectButton(Button button) {
         // Function that would deal with what happens when button is clicked
-        InventoryTransfer.LOGGER.info("Select button pressed!");
         String playerName = textbox.getValue().trim();
         if (playerName.isEmpty()) {
             Minecraft.getInstance().player.displayClientMessage(Component.literal("Please enter a player name."), true);
             return;
         }
 
-        //ClientEvents.targetUUID = target.getUUID();
-        InventoryTransfer.LOGGER.info("Target set to {}", playerName);
+        // Send name to server for validation
+        ModNetworking.sendToServer(new TargetSelectPacket(playerName));
 
+        InventoryTransfer.LOGGER.info("Sent target selection request for '{}'", playerName);
         Minecraft.getInstance().setScreen(null); // close the GUI
     }
 
@@ -102,11 +101,10 @@ public class PlayerSelectScreen extends Screen {
         renderBackground(graphics); // Darkens background when GUI opened
         //renders from top-left first, unless you use diff rendering methods
         // Using TEXTURE allows you to put in a custom texture file for the menu
-        graphics.blit(TEXTURE, this.leftPos, this.topPos, 0, 0, this.imgWidth, this.imgHeight, 256, 256);
+        graphics.blit(TEXTURE, this.leftPos, this.topPos, 0, 0, this.imgWidth, this.imgHeight);
         super.render(graphics, mouseX, mouseY, partialTicks);
         this.textbox.render(graphics, mouseX, mouseY, partialTicks);
-        graphics.drawString(this.font, TITLE, this.leftPos + 8, this.topPos + 8, 0x404040, false);
-
+        graphics.drawString(this.font, TITLE, this.leftPos + 8, this.topPos + 12, 0x404040, false);
     }
 
     @Override

@@ -1,4 +1,4 @@
-package net.vyltx.inventorytransfer.networking;
+package net.vyltx.inventory_transfer.networking;
 
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.PacketDistributor;
@@ -6,8 +6,10 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkRegistry.ChannelBuilder;
 import net.minecraftforge.network.simple.SimpleChannel;
-import net.vyltx.inventorytransfer.InventoryTransfer;
-import net.vyltx.inventorytransfer.networking.packets.C2SPacket;
+import net.vyltx.inventory_transfer.InventoryTransfer;
+import net.vyltx.inventory_transfer.networking.packets.ItemTransferPacket;
+import net.vyltx.inventory_transfer.networking.packets.TargetConfirmPacket;
+import net.vyltx.inventory_transfer.networking.packets.TargetSelectPacket;
 
 // handles registering channel with which packets get sent
 public class ModNetworking {
@@ -27,10 +29,22 @@ public class ModNetworking {
 
         INSTANCE = net;
 
-        net.messageBuilder(C2SPacket.class, id(), NetworkDirection.PLAY_TO_SERVER)
-                .decoder(C2SPacket::new)
-                .encoder(C2SPacket::toBytes)
-                .consumerMainThread(C2SPacket::handle)
+        net.messageBuilder(ItemTransferPacket.class, id(), NetworkDirection.PLAY_TO_SERVER)
+                .decoder(ItemTransferPacket::new)
+                .encoder(ItemTransferPacket::toBytes)
+                .consumerMainThread(ItemTransferPacket::handle)
+                .add();
+
+        net.messageBuilder(TargetSelectPacket.class, id(), NetworkDirection.PLAY_TO_SERVER)
+                .decoder(TargetSelectPacket::new)
+                .encoder(TargetSelectPacket::toBytes)
+                .consumerMainThread(TargetSelectPacket::handle)
+                .add();
+
+        net.messageBuilder(TargetConfirmPacket.class, id(), NetworkDirection.PLAY_TO_CLIENT)
+                .decoder(TargetConfirmPacket::new)
+                .encoder(TargetConfirmPacket::toBytes)
+                .consumerMainThread(TargetConfirmPacket::handle)
                 .add();
     }
 
