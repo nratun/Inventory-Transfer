@@ -21,6 +21,10 @@ import net.minecraft.world.inventory.Slot;
 import java.util.UUID;
 
 // Initializes and checks content during gameplay
+/**
+ * ClientEvents
+ * Initializes and checks content during gameplay (keybinds, things happening during gameplay, etc.)
+ */
 public class ClientEvents {
     public static KeyMapping sendKey;
     public static KeyMapping menuKey;
@@ -34,6 +38,15 @@ public class ClientEvents {
             InventoryTransfer.LOGGER.info("Client setup complete for {}", InventoryTransfer.MOD_ID);
         }
 
+        /**
+         * Registers the necessary keys the mod will use
+         * <p>
+         * Registered keys include:
+         * H - Opens up a GUI to select a target player
+         * G - Transfers the selected/hovered item to the target player
+         *
+         * @param  event  Registers custom key mappings
+         */
         @SubscribeEvent
         public static void registerKeys(RegisterKeyMappingsEvent event) {
             sendKey = new KeyMapping(
@@ -56,16 +69,18 @@ public class ClientEvents {
     // Registered on Forge’s main event bus for any content that needs to be checked continuously during game
     @Mod.EventBusSubscriber(modid = InventoryTransfer.MOD_ID, value = Dist.CLIENT)
     public static class ClientForgeEvents {
+        /**
+         * Determines what will occur when specific keys are pressed while playing
+         * <p>
+         * Actions associated with the following keys:
+         * H - Opens up a GUI to select a target player
+         * G - Transfers the item the player is actively holding to the target player
+         * Note: The G key functionality has not yet been configured, it is currently left as a FIXME
+         *
+         * @param  event  An event that occurs when a specific key is pressed in the game
+         */
         @SubscribeEvent
         public static void onKeyPress(InputEvent.Key event) {
-            //FIXME add conditions for sending packet
-            // Need to check the following:
-            // Correct key is pressed ✅
-            // Hovering over an item slot to send ✅
-            // Item slot has something to send (not empty) ✅
-            // Target player is online
-            // Target player is selected to receive items (no target, no sending) ✅
-            // Target player has inventory space to receive item (or can drop it at their feet, will consider that at a later date)
             Minecraft mc = Minecraft.getInstance();
 
             if (menuKey.consumeClick() && mc.player != null) {
@@ -74,38 +89,33 @@ public class ClientEvents {
 
             if (sendKey.consumeClick() && mc.player != null && mc.screen == null) {
                 InventoryTransfer.LOGGER.info("G key pressed");
-                //Handle item transfer using item in your hand
+                //FIXME Handle item transfer using item in your hand
             }
         }
 
+        /**
+         * Determines what will occur when specific keys are pressed while the player is actively in a screen/container
+         * <p>
+         * Registered keys include:
+         * G - Transfers the item that is hovered over by the player's mouse to the target player
+         *
+         * @param  event  An event that occurs when a specific key is pressed while a player is observing a screen
+         */
         @SubscribeEvent
         public static void onGuiKeyPress(ScreenEvent.KeyPressed event) {
             Minecraft mc = Minecraft.getInstance();
             if (mc.player == null) return;
 
-            // Make sure the GUI is a container (chest, inventory, etc)
+            // Make sure GUI is a container
             if (!(event.getScreen() instanceof AbstractContainerScreen<?> screen)) return;
 
-            // Check if the pressed key matches our send keybind
+            // Check if pressed key matches send keybind
             if (sendKey.matches(event.getKeyCode(), event.getScanCode())) {
                 InventoryTransfer.LOGGER.info("G key pressed inside container screen: " + screen.getClass().getSimpleName());
 
-                // You can now trigger your item sending logic here
-                // For example:
-                // ModNetworking.sendToServer(new ItemTransferPacket(...));
                 Slot hoveredSlot = screen.getSlotUnderMouse();
 
                 if (hoveredSlot != null && hoveredSlot.hasItem()) {
-                    /*
-                    // This could maybe be added for wuality, but I think it would be preferable without it
-                    // Check that player isn’t already carrying something
-                    ItemStack carried = mc.player.containerMenu.getCarried();
-                    if (!carried.isEmpty()) {
-                        mc.player.displayClientMessage(Component.literal("Cannot send while holding another item."), true);
-                        return;
-                    }
-                    */
-                    // FIXME most likely need to do some sort of packet to actually check the online status/availability of the target
                     // if checking target status here, can consider removing it from ItemTransferPacket
                     if (targetUUID == null) {
                         InventoryTransfer.LOGGER.warn("Target player not found or offline. Cancelling send.");
@@ -117,7 +127,7 @@ public class ClientEvents {
                     int slotId = hoveredSlot.index;
                     ModNetworking.sendToServer(new ItemTransferPacket(slotId, targetUUID));
                 }
-                event.setCanceled(true); // prevent the GUI from eating the key press if needed
+                event.setCanceled(true);
             }
         }
     }

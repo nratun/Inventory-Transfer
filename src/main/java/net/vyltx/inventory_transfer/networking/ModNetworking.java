@@ -16,9 +16,22 @@ public class ModNetworking {
     private static SimpleChannel INSTANCE;
     private static int packetID = 0;
 
+    /**
+     * Increments packet IDs by one
+     * <p>
+     * Registered keys include:
+
+     * @return int
+     */
     private static int id() {
         return packetID++;
     }
+
+    /**
+     * Sends and handles packets going in designated directions
+     * <p>
+     * Messages are encoded/decoded depending on if they're sent/received
+     */
     public static void register() {
         SimpleChannel net = ChannelBuilder
                 .named(ResourceLocation.fromNamespaceAndPath(InventoryTransfer.MOD_ID, "messages"))
@@ -48,16 +61,29 @@ public class ModNetworking {
                 .add();
     }
 
-    // Sends message to server
+    /**
+     * Sends a message to the server
+     *
+     * @param  msg  the message to be sent
+     */
     public static <MSG> void sendToServer(MSG msg) {
         INSTANCE.sendToServer(msg);
     }
 
-    // Send message directly to player
+    /**
+     * Sends a message directly to the player
+     *
+     * @param  msg  the message to be sent
+     */
     public static <MSG> void sendToPlayer(MSG msg, ServerPlayer player) {
         INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), msg);
     }
 
+    /**
+     * Sends a message to all clients
+     *
+     * @param  msg  the message to be sent
+     */
     public static <MSG> void sendToAllClients(MSG msg) {
         INSTANCE.send(PacketDistributor.ALL.noArg(), msg);
     }

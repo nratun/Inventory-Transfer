@@ -3,5 +3,6 @@
   "key.categories.inventory_transfer": "Inventory Transfer",
   "key.inventory_transfer.open_menu": "Player Menu",
   "gui.inventory_transfer.player_select_screen": "Select Player",
-  "gui.inventory_transfer.player_select_screen.button.select_button": "Select"
+  "gui.inventory_transfer.player_select_screen.button.select_button": "Select",
+  "gui.inventory_transfer.player_select_screen.button.reset_button": "Clear Target Player"
 }

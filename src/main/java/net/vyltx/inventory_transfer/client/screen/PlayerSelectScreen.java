@@ -10,6 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.minecraft.network.chat.Component;
 import net.vyltx.inventory_transfer.InventoryTransfer;
+import net.vyltx.inventory_transfer.event.ClientEvents;
 import net.vyltx.inventory_transfer.networking.ModNetworking;
 import net.vyltx.inventory_transfer.networking.packets.TargetSelectPacket;
 import org.jetbrains.annotations.NotNull;
@@ -17,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 public class PlayerSelectScreen extends Screen {
     private static final Component TITLE = Component.translatable("gui." + InventoryTransfer.MOD_ID + ".player_select_screen");
     private static final Component SELECT_BUTTON = Component.translatable("gui." + InventoryTransfer.MOD_ID + ".player_select_screen.button.select_button");
+    private static final Component RESET_BUTTON = Component.translatable("gui." + InventoryTransfer.MOD_ID + ".player_select_screen.button.reset_button");
     private static final Component INPUT = Component.translatable("gui." + InventoryTransfer.MOD_ID + ".player_select_screen.editbox.input");
 
     // Used to render textures, currently using default minecraft texture
@@ -25,14 +27,15 @@ public class PlayerSelectScreen extends Screen {
     private final int imgWidth, imgHeight;
     private  int leftPos, topPos;
 
-    private Button button;
+    private Button selectButton;
+    private Button resetButton;
     private EditBox textbox;
     private PlayerList players;
 
     public PlayerSelectScreen() {
         super(TITLE);
-        this.imgWidth = 190; //190
-        this.imgHeight = 65; //65
+        this.imgWidth = 190;
+        this.imgHeight = 85;
     }
 
     @Override
@@ -46,26 +49,45 @@ public class PlayerSelectScreen extends Screen {
         this.leftPos = (this.width - this.imgWidth) / 2;
         this.topPos = (this.height - this.imgHeight) / 2;
 
-        this.button = addRenderableWidget(
+        this.selectButton = addRenderableWidget(
                 Button.builder(
                                 SELECT_BUTTON,
                                 this::handleSelectButton
                         )
-                        .bounds(this.leftPos + 130, this.topPos + 30, 48, 22)
+                        .bounds(this.leftPos + 130, this.topPos + 27, 48, 21)
                         .tooltip(Tooltip.create(SELECT_BUTTON))
                         .build()
         );
+        this.resetButton = addRenderableWidget(
+                Button.builder(
+                                RESET_BUTTON,
+                                this::handleResetButton
+                        )
+                        .bounds(this.leftPos + 12, this.topPos + 53, 166, 22)
+                        .tooltip(Tooltip.create(RESET_BUTTON))
+                        .build()
+        );
         this.textbox = addRenderableWidget(
-                new EditBox(this.font, this.leftPos + 12, this.topPos + 30, 110, 20, INPUT)
+                new EditBox(this.font, this.leftPos + 12, this.topPos + 28, 110, 20, INPUT)
         );
         this.textbox.setMaxLength(16); // Names are not longer than 16 chars
-        //this.textbox.setFocused(true);
         // Maybe add ScrollPanel later
 
     }
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        // ESC key closes the screen even if textbox is focused
+        if (keyCode == 256) { // 256 = GLFW.GLFW_KEY_ESCAPE
+            this.onClose();
+            return true;
+        }
+
+        if (keyCode == 257 || keyCode == 335) { // Enter / Numpad Enter
+            this.handleSelectButton(this.selectButton);
+            return true;
+        }
+
         if (this.textbox.keyPressed(keyCode, scanCode, modifiers) || this.textbox.canConsumeInput()) {
             return true;
         }
@@ -88,10 +110,24 @@ public class PlayerSelectScreen extends Screen {
             return;
         }
 
+        String callerName = Minecraft.getInstance().player.getGameProfile().getName();
+        if (callerName.equalsIgnoreCase(playerName)) {
+            Minecraft.getInstance().player.displayClientMessage(Component.literal("Target can not be yourself, must be another player."), true);
+            return;
+        }
+
         // Send name to server for validation
         ModNetworking.sendToServer(new TargetSelectPacket(playerName));
 
         InventoryTransfer.LOGGER.info("Sent target selection request for '{}'", playerName);
+        Minecraft.getInstance().setScreen(null); // close the GUI
+    }
+
+    private void handleResetButton(Button button) {
+        // Function that would deal with what happens when you want to remove target
+        ClientEvents.targetUUID = null;
+
+        InventoryTransfer.LOGGER.info("Removed  target, targetUUID is now {}", ClientEvents.targetUUID);
         Minecraft.getInstance().setScreen(null); // close the GUI
     }
 

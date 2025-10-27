@@ -10,8 +10,6 @@ import net.minecraftforge.network.NetworkEvent;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-import net.vyltx.inventory_transfer.networking.ModNetworking;
-
 public class ItemTransferPacket {
 
     private final int slotNum;
@@ -28,6 +26,14 @@ public class ItemTransferPacket {
         this.targetUUID = buf.readUUID();
     }
 
+    /**
+     * Must describe
+     * <p>
+     * Additioal content goes here
+     *
+     * @param  buf  Need to add contents
+     * @return        Void
+     */
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeInt(slotNum);
         buf.writeUUID(targetUUID);
