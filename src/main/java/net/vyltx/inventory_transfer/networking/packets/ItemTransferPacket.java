@@ -68,17 +68,8 @@ public class ItemTransferPacket {
 
             // Attempt to transfer the stack to target's inventory
             ItemStack remaining = itemToSend.copy();
-            for (int i = 0; i < target.getInventory().getContainerSize(); i++) {
+            for (int i = 9; i <= 35 && !remaining.isEmpty(); i++) {
                 ItemStack targetStack = target.getInventory().getItem(i);
-
-                // Empty slot =  place entire stack
-                if (targetStack.isEmpty()) {
-                    target.getInventory().setItem(i, remaining);
-                    remaining = ItemStack.EMPTY;
-                    break;
-                }
-
-                // Merge with same items
                 if (ItemStack.isSameItemSameTags(remaining, targetStack)) {
                     int maxStack = Math.min(targetStack.getMaxStackSize(), remaining.getMaxStackSize());
                     int spaceLeft = maxStack - targetStack.getCount();
@@ -87,6 +78,37 @@ public class ItemTransferPacket {
                         targetStack.grow(transferAmount);
                         remaining.shrink(transferAmount);
                     }
+                }
+            }
+
+            // Hotbar merge
+            for (int i = 0; i <= 8 && !remaining.isEmpty(); i++) {
+                ItemStack targetStack = target.getInventory().getItem(i);
+                if (ItemStack.isSameItemSameTags(remaining, targetStack)) {
+                    int maxStack = Math.min(targetStack.getMaxStackSize(), remaining.getMaxStackSize());
+                    int spaceLeft = maxStack - targetStack.getCount();
+                    if (spaceLeft > 0) {
+                        int transferAmount = Math.min(remaining.getCount(), spaceLeft);
+                        targetStack.grow(transferAmount);
+                        remaining.shrink(transferAmount);
+                    }
+                }
+            }
+
+            // Place into empty slots (inventory first, then hotbar) ===
+            for (int i = 9; i <= 35 && !remaining.isEmpty(); i++) {
+                if (target.getInventory().getItem(i).isEmpty()) {
+                    target.getInventory().setItem(i, remaining.copy());
+                    remaining = ItemStack.EMPTY;
+                    break;
+                }
+            }
+
+            for (int i = 0; i <= 8 && !remaining.isEmpty(); i++) {
+                if (target.getInventory().getItem(i).isEmpty()) {
+                    target.getInventory().setItem(i, remaining.copy());
+                    remaining = ItemStack.EMPTY;
+                    break;
                 }
             }
 
