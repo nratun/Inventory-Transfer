@@ -24,11 +24,9 @@ public class TargetConfirmPacket {
 
     public boolean handle(Supplier<NetworkEvent.Context> supplier) {
         // Client-side only
-        // Target has been properly selected through select packet, so now value is being assinged to targetUUID
+        // Target has been properly selected through select packet, so now value is being assigned to targetUUID
         NetworkEvent.Context context = supplier.get();
-        context.enqueueWork(() -> {
-            ClientEvents.targetUUID = targetUUID;
-        });
+        context.enqueueWork(() -> ClientEvents.targetUUID = targetUUID);
 
         context.setPacketHandled(true);
         return true;

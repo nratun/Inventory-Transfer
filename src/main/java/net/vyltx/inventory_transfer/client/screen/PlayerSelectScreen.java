@@ -5,7 +5,6 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.server.players.PlayerList;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.minecraft.network.chat.Component;
@@ -30,7 +29,6 @@ public class PlayerSelectScreen extends Screen {
     private Button selectButton;
     private Button resetButton;
     private EditBox textbox;
-    private PlayerList players;
 
     public PlayerSelectScreen() {
         super(TITLE);
@@ -126,8 +124,6 @@ public class PlayerSelectScreen extends Screen {
     private void handleResetButton(Button button) {
         // Function that would deal with what happens when you want to remove target
         ClientEvents.targetUUID = null;
-
-        InventoryTransfer.LOGGER.info("Removed  target, targetUUID is now {}", ClientEvents.targetUUID);
         Minecraft.getInstance().setScreen(null); // close the GUI
     }
 

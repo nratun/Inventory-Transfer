@@ -29,7 +29,7 @@ public class ItemTransferPacket {
     /**
      * Must describe
      * <p>
-     * Additioal content goes here
+     * Additional content goes here
      *
      * @param  buf  Need to add contents
      * @return        Void

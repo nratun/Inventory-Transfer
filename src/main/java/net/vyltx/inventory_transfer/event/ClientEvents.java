@@ -4,9 +4,7 @@ import net.minecraft.client.KeyMapping;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
-import net.minecraftforge.client.event.RenderGuiOverlayEvent;
 import net.minecraftforge.client.event.ScreenEvent;
-import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
@@ -115,8 +113,6 @@ public class ClientEvents {
 
             // Check if pressed key matches send keybind
             if (sendKey.matches(event.getKeyCode(), event.getScanCode())) {
-                InventoryTransfer.LOGGER.info("G key pressed inside container screen: " + screen.getClass().getSimpleName());
-
                 Slot hoveredSlot = screen.getSlotUnderMouse();
 
                 if (hoveredSlot != null && hoveredSlot.hasItem()) {

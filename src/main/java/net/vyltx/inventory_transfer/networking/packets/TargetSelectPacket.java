@@ -2,12 +2,9 @@ package net.vyltx.inventory_transfer.networking.packets;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkEvent;
 import net.vyltx.inventory_transfer.networking.ModNetworking;
-
-import java.util.UUID;
 import java.util.function.Supplier;
 
 public class TargetSelectPacket {
