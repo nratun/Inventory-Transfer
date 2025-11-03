@@ -25,7 +25,7 @@ public class PlayerSelectScreen extends Screen {
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(InventoryTransfer.MOD_ID, "textures/gui/player_select_screen.png");
 
     private final int imgWidth, imgHeight;
-    private  int leftPos, topPos;
+    private int leftPos, topPos;
 
     private Button selectButton;
     private Button resetButton;
@@ -141,6 +141,14 @@ public class PlayerSelectScreen extends Screen {
         super.render(graphics, mouseX, mouseY, partialTicks);
         this.textbox.render(graphics, mouseX, mouseY, partialTicks);
         graphics.drawString(this.font, TITLE, this.leftPos + 8, this.topPos + 12, 0x404040, false);
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+
+        // Add ticking logic for EditBox in editBox
+        this.textbox.tick();
     }
 
     @Override

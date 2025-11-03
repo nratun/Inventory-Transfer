@@ -4,11 +4,14 @@ import net.minecraft.client.KeyMapping;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
+import net.minecraftforge.client.event.RenderGuiOverlayEvent;
 import net.minecraftforge.client.event.ScreenEvent;
+import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.vyltx.inventory_transfer.client.screen.PlayerSelectScreen;
+import net.vyltx.inventory_transfer.client.screen.TargetOverlay;
 import net.vyltx.inventory_transfer.networking.ModNetworking;
 import net.vyltx.inventory_transfer.networking.packets.ItemTransferPacket;
 import net.vyltx.inventory_transfer.InventoryTransfer;
@@ -29,6 +32,7 @@ public class ClientEvents {
     public static KeyMapping sendKey;
     public static KeyMapping menuKey;
     public static UUID targetUUID;
+    public static TargetOverlay targetOverlay;
 
     // Configures/initializes any client setup needed before gameplay starts (ex. register keybinds)
     @Mod.EventBusSubscriber(modid = InventoryTransfer.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
@@ -129,6 +133,33 @@ public class ClientEvents {
                 }
                 event.setCanceled(true);
             }
+        }
+
+        @SubscribeEvent
+        public static void onRenderOverlay(ScreenEvent.BackgroundRendered event) {
+
+            Minecraft mc = Minecraft.getInstance();
+            if (mc.player == null) return;
+
+            // Only render overlay while viewing an inventory or container screen
+            if (!(mc.screen instanceof net.minecraft.client.gui.screens.inventory.AbstractContainerScreen<?>)) return;
+
+            if (targetUUID == null) {
+                targetOverlay = null;
+                return;
+            }
+
+            var info = mc.getConnection().getPlayerInfo(targetUUID);
+            if (info == null) return;
+
+            if (targetOverlay == null) {
+                targetOverlay = new TargetOverlay(info, 10, 10); // top left of screen
+            } else {
+                targetOverlay.setTarget(info);
+            }
+
+            // Render widget
+            targetOverlay.renderWidget(event.getGuiGraphics(), 0, 0, mc.getFrameTime());
         }
     }
 }
