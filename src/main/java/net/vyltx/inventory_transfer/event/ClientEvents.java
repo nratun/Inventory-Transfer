@@ -21,7 +21,6 @@ import net.minecraft.world.inventory.Slot;
 
 import java.util.UUID;
 
-// Initializes and checks content during gameplay
 /**
  * ClientEvents
  * Initializes and checks content during gameplay (keybinds, things happening during gameplay, etc.)
@@ -131,6 +130,14 @@ public class ClientEvents {
             }
         }
 
+        /**
+         * Creates a small indicator when the inventory/container is open to remind users who their target is
+         * <p>
+         * The indicator includes the target player's name and an icon of their face
+         * If the player has no target, the indicator does not appear
+         *
+         * @param  event     An event to be occurred AFTER the darkening and background effects of the screen have been rendered
+         */
         @SubscribeEvent
         public static void onRenderOverlay(ScreenEvent.BackgroundRendered event) {
 
@@ -140,6 +147,7 @@ public class ClientEvents {
             // Only render overlay while viewing an inventory or container screen
             if (!(mc.screen instanceof net.minecraft.client.gui.screens.inventory.AbstractContainerScreen<?>)) return;
 
+            // If there's no target, there's no overlay
             if (targetUUID == null) {
                 targetOverlay = null;
                 return;
@@ -148,6 +156,7 @@ public class ClientEvents {
             var info = mc.getConnection().getPlayerInfo(targetUUID);
             if (info == null) return;
 
+            // If there is no overlay, create a new one. Otherwise, modify the existing one
             if (targetOverlay == null) {
                 targetOverlay = new TargetOverlay(info, 10, 10); // top left of screen
             } else {

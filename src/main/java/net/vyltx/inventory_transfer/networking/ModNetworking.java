@@ -11,7 +11,10 @@ import net.vyltx.inventory_transfer.networking.packets.ItemTransferPacket;
 import net.vyltx.inventory_transfer.networking.packets.TargetConfirmPacket;
 import net.vyltx.inventory_transfer.networking.packets.TargetSelectPacket;
 
-// handles registering channel with which packets get sent
+/**
+ * ModNetworking
+ * Handles registering channel with which packets get sent
+ */
 public class ModNetworking {
     private static SimpleChannel INSTANCE;
     private static int packetID = 0;
@@ -73,7 +76,8 @@ public class ModNetworking {
     /**
      * Sends a message directly to the player
      *
-     * @param  msg  the message to be sent
+     * @param  msg      the message to be sent
+     * @param  player   the player who will receive the message
      */
     public static <MSG> void sendToPlayer(MSG msg, ServerPlayer player) {
         INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), msg);

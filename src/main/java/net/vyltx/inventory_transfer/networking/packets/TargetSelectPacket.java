@@ -7,6 +7,11 @@ import net.minecraftforge.network.NetworkEvent;
 import net.vyltx.inventory_transfer.networking.ModNetworking;
 import java.util.function.Supplier;
 
+/**
+ * TargetSelectPacket
+ * Checks whether a selected target exists and is online
+ * If so, the value for the target is confirmed (via TargetConfirmPacket) and ready to receive item transfers
+ */
 public class TargetSelectPacket {
     private final String targetName;
     public TargetSelectPacket(String targetName) {
@@ -21,7 +26,11 @@ public class TargetSelectPacket {
         buf.writeUtf(targetName);
     }
 
-    public boolean handle(Supplier<NetworkEvent.Context> supplier) {
+    /**
+     * Handles checking that the target player is valid and sends the confirmation via TargetConfirmPacket
+     * @param  supplier     Environment for network packets
+     */
+    public void handle(Supplier<NetworkEvent.Context> supplier) {
         NetworkEvent.Context context = supplier.get();
         context.enqueueWork(() -> {
             ServerPlayer sender = context.getSender();
@@ -39,6 +48,5 @@ public class TargetSelectPacket {
         });
 
         context.setPacketHandled(true);
-        return true;
     }
 }

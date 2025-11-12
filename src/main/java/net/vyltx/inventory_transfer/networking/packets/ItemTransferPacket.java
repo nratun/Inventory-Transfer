@@ -10,6 +10,11 @@ import net.minecraftforge.network.NetworkEvent;
 import java.util.UUID;
 import java.util.function.Supplier;
 
+/**
+ * ItemTransferPacket
+ * Handles the movement of items between players.
+ * Uses a target player's ID and the slot number of the item (where it's located) to transfer items
+ */
 public class ItemTransferPacket {
 
     private final int slotNum;
@@ -20,25 +25,26 @@ public class ItemTransferPacket {
         this.targetUUID = targetUUID;
     }
 
-    // writing (make sure write is written in same order as what's being read
+    // Always make sure write is written in same order as what's being read (slot number first, then UUID)
     public ItemTransferPacket(FriendlyByteBuf buf) {
         this.slotNum = buf.readInt();
         this.targetUUID = buf.readUUID();
     }
 
-    /**
-     * Must describe
-     * <p>
-     * Additional content goes here
-     *
-     * @param  buf  Need to add contents
-     * @return        Void
-     */
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeInt(slotNum);
         buf.writeUUID(targetUUID);
     }
 
+    /**
+     * Handles combining duplicate items in the target player's inventory
+     * <p>
+     * If a transferred item can go into an existing stack, it is added to the stack.
+     * If a transferred item takes up more space than an existing stack, it will add however much it can into the existing stack, and add the remainder to an empty inventory space
+     *
+     * @param  targetStack  Need to add contents
+     * @param  remaining    The remainder of the item to be transferred
+     */
     private static void mergeStack(ItemStack targetStack, ItemStack remaining) {
         if (ItemStack.isSameItemSameTags(remaining, targetStack)) {
             int maxStack = Math.min(targetStack.getMaxStackSize(), remaining.getMaxStackSize());
@@ -51,6 +57,16 @@ public class ItemTransferPacket {
         }
     }
 
+    /**
+     * Handles adding the transferred item into the target player's inventory or hotbar, depending on available space
+     * <p>
+     * Items are either merged with an existing stack, or added to an empty space if existing stacks don't have enough room
+     * The transfer prioritizes using up space in the inventory before attempting to take up space in the hotbar (people don't usually like their hotbar getting cluttered)
+     *
+     * @param  target   Target player who is receiving the item
+     * @param  stack    The item being transferred
+     * @return          Any remainder of the item that is being transferred
+     */
     private static ItemStack handleTransfer(ServerPlayer target, ItemStack stack) {
         ItemStack remaining = stack.copy();
 
@@ -63,6 +79,7 @@ public class ItemTransferPacket {
             mergeStack(target.getInventory().getItem(i), remaining);
 
         // If there is overflow of an item after adding it to a stack
+        // (Note: a helper function can be made to reduce reuse of these lines)
         for (int i = 9; i <= 35 && !remaining.isEmpty(); i++) {
             if (target.getInventory().getItem(i).isEmpty()) {
                 target.getInventory().setItem(i, remaining);
@@ -82,7 +99,16 @@ public class ItemTransferPacket {
         return remaining;
     }
 
-    public boolean handle(Supplier<NetworkEvent.Context> supplier) {
+    /**
+     * The main function that handles the entire transfer logic, from start to finish
+     * <p>
+     * Checks that the target is valid before attempting to transfer items.
+     * Calls the handleTransfer function on the item to be transferred.
+     * Notifies players if the target has no room to receive the transferred item
+     *
+     * @param  supplier   Environment for network packets
+     */
+    public void handle(Supplier<NetworkEvent.Context> supplier) {
         NetworkEvent.Context context = supplier.get();
 
         context.enqueueWork(() -> {
@@ -128,6 +154,5 @@ public class ItemTransferPacket {
         });
 
         context.setPacketHandled(true);
-        return true;
     }
 }
