@@ -168,7 +168,7 @@ public class PlayerSelectScreen extends Screen {
         Minecraft.getInstance().setScreen(null); // close the GUI
     }
 
-    //FIXME finish documentation
+    //FIXME finish documentation for render
     /**
      * Determines if a target is valid after the selectButton is clicked (or if the ENTER key is pressed)
      * <p>
