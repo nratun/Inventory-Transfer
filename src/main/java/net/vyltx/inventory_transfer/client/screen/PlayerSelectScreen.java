@@ -84,6 +84,7 @@ public class PlayerSelectScreen extends Screen {
                 new EditBox(this.font, this.leftPos + 12, this.topPos + 28, 110, 20, INPUT)
         );
         this.textbox.setMaxLength(16); // Names are not longer than 16 chars
+        this.setInitialFocus(this.textbox);
         // Maybe add ScrollPanel later
 
     }
@@ -115,16 +116,6 @@ public class PlayerSelectScreen extends Screen {
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
-
-    /* Don't think I need this at the moment
-    @Override
-    public boolean charTyped(char codePoint, int modifiers) {
-        if (this.textbox.charTyped(codePoint, modifiers)) {
-            return true;
-        }
-        return super.charTyped(codePoint, modifiers);
-    }
-    */
 
     /**
      * Determines if a target is valid after the selectButton is clicked (or if the ENTER key is pressed)

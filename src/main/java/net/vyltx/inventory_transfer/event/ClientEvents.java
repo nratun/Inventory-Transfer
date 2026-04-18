@@ -86,7 +86,7 @@ public class ClientEvents {
             Minecraft mc = Minecraft.getInstance();
 
             if (menuKey.consumeClick() && mc.player != null) {
-                Minecraft.getInstance().setScreen(new PlayerSelectScreen());
+                mc.tell(() -> mc.setScreen(new PlayerSelectScreen()));
             }
 
             if (sendKey.consumeClick() && mc.player != null && mc.screen == null) {
