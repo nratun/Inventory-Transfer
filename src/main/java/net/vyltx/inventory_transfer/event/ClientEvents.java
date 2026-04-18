@@ -26,8 +26,8 @@ import java.util.UUID;
  * Initializes and checks content during gameplay (keybinds, things happening during gameplay, etc.)
  */
 public class ClientEvents {
-    private static KeyMapping sendKey;
-    private static KeyMapping menuKey;
+    private static KeyMapping sendKey; // Key to initiate inventory transfer
+    private static KeyMapping menuKey; // Key to open player select screen
     public static UUID targetUUID;
     public static TargetOverlay targetOverlay;
     // Determines if the sendKey has already been pressed while the player is in a screen
@@ -86,10 +86,12 @@ public class ClientEvents {
         public static void onKeyPress(InputEvent.Key event) {
             Minecraft mc = Minecraft.getInstance();
 
+            // Opens target selection screen
             if (menuKey.consumeClick() && mc.player != null) {
                 mc.tell(() -> mc.setScreen(new PlayerSelectScreen()));
             }
 
+            // Initiates item transfer for object in player's main hand
             if (sendKey.consumeClick() && mc.player != null && mc.screen == null) {
                 if (targetUUID == null) {
                     InventoryTransfer.LOGGER.warn("Target player not found or offline, Cancelling send.");
@@ -146,7 +148,7 @@ public class ClientEvents {
                 Slot hoveredSlot = screen.getSlotUnderMouse();
 
                 if (hoveredSlot != null && hoveredSlot.hasItem()) {
-                    // if checking target status here, can consider removing it from ItemTransferPacket
+                    // If checking target status here, can consider removing it from ItemTransferPacket?
                     if (targetUUID == null) {
                         InventoryTransfer.LOGGER.warn("Target player not found or offline. Cancelling send.");
                         mc.player.displayClientMessage(Component.literal("No target player selected."), true);
@@ -197,7 +199,6 @@ public class ClientEvents {
                 targetOverlay.setTarget(info);
             }
 
-            // Render widget
             targetOverlay.renderWidget(event.getGuiGraphics(), 0, 0, mc.getFrameTime());
         }
     }
