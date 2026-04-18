@@ -25,7 +25,8 @@ public class ItemTransferPacket {
         this.targetUUID = targetUUID;
     }
 
-    // Always make sure write is written in same order as what's being read (slot number first, then UUID)
+    // Always make sure write is written in same order as what's being read
+    // (Note: slot number first, then UUID)
     public ItemTransferPacket(FriendlyByteBuf buf) {
         this.slotNum = buf.readInt();
         this.targetUUID = buf.readUUID();

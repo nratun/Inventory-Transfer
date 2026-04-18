@@ -1,6 +1,7 @@
 package net.vyltx.inventory_transfer.event;
 
 import net.minecraft.client.KeyMapping;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
@@ -89,8 +90,15 @@ public class ClientEvents {
             }
 
             if (sendKey.consumeClick() && mc.player != null && mc.screen == null) {
-                InventoryTransfer.LOGGER.info("G key pressed");
-                //FIXME Handle item transfer using item in your hand
+                if (targetUUID == null) {
+                    InventoryTransfer.LOGGER.warn("Target player not found or offline. Cancelling send.");
+                    mc.player.displayClientMessage(Component.literal("No target player selected."), true);
+                    return;
+                }
+                // If all good, send packet with hotbar slot index and target player UUID
+                // (Note: Adding 36 because the hotbar ranges from 36-44)
+                int slotId = mc.player.getInventory().selected + 36;
+                ModNetworking.sendToServer(new ItemTransferPacket(slotId, targetUUID));
             }
         }
 
