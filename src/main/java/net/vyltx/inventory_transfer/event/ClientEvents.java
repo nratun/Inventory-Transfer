@@ -1,7 +1,6 @@
 package net.vyltx.inventory_transfer.event;
 
 import net.minecraft.client.KeyMapping;
-import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
@@ -27,10 +26,12 @@ import java.util.UUID;
  * Initializes and checks content during gameplay (keybinds, things happening during gameplay, etc.)
  */
 public class ClientEvents {
-    public static KeyMapping sendKey;
-    public static KeyMapping menuKey;
+    private static KeyMapping sendKey;
+    private static KeyMapping menuKey;
     public static UUID targetUUID;
     public static TargetOverlay targetOverlay;
+    // Determines if the sendKey has already been pressed while the player is in a screen
+    private static boolean sendKeyScreen = false;
 
     // Configures/initializes any client setup needed before gameplay starts (ex. register keybinds)
     @Mod.EventBusSubscriber(modid = InventoryTransfer.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
@@ -91,7 +92,7 @@ public class ClientEvents {
 
             if (sendKey.consumeClick() && mc.player != null && mc.screen == null) {
                 if (targetUUID == null) {
-                    InventoryTransfer.LOGGER.warn("Target player not found or offline. Cancelling send.");
+                    InventoryTransfer.LOGGER.warn("Target player not found or offline, Cancelling send.");
                     mc.player.displayClientMessage(Component.literal("No target player selected."), true);
                     return;
                 }
@@ -99,6 +100,20 @@ public class ClientEvents {
                 // (Note: Adding 36 because the hotbar ranges from 36-44)
                 int slotId = mc.player.getInventory().selected + 36;
                 ModNetworking.sendToServer(new ItemTransferPacket(slotId, targetUUID));
+            }
+        }
+
+        /**
+         * Resets the value of sendKeyScreen when the inventory transfer key is released while in a screen
+         * <p>
+         * The goal is to prevent the action from triggering multiple times unnecessarily
+         *
+         * @param  event  An event that occurs when a specific key is released in the game
+         */
+        @SubscribeEvent
+        public static void onScreenKeyReleased(ScreenEvent.KeyReleased event) {
+            if (sendKey.matches(event.getKeyCode(), event.getScanCode())) {
+                sendKeyScreen = false;
             }
         }
 
@@ -120,6 +135,14 @@ public class ClientEvents {
 
             // Check if pressed key matches send keybind
             if (sendKey.matches(event.getKeyCode(), event.getScanCode())) {
+                // Key has already been pressed in the screen, no need to do it multiple times
+                if (sendKeyScreen) {
+                    event.setCanceled(true);
+                    return;
+                }
+
+                // Key has been pressed once, change value to true to prevent duplicate triggers
+                sendKeyScreen = true;
                 Slot hoveredSlot = screen.getSlotUnderMouse();
 
                 if (hoveredSlot != null && hoveredSlot.hasItem()) {
@@ -127,6 +150,7 @@ public class ClientEvents {
                     if (targetUUID == null) {
                         InventoryTransfer.LOGGER.warn("Target player not found or offline. Cancelling send.");
                         mc.player.displayClientMessage(Component.literal("No target player selected."), true);
+                        event.setCanceled(true); // Cancel sendKeyScreen event
                         return;
                     }
 
@@ -160,6 +184,8 @@ public class ClientEvents {
                 targetOverlay = null;
                 return;
             }
+
+            if (mc.getConnection() == null) return;
 
             var info = mc.getConnection().getPlayerInfo(targetUUID);
             if (info == null) return;
