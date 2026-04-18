@@ -35,6 +35,7 @@ public class TargetSelectPacket {
         context.enqueueWork(() -> {
             ServerPlayer sender = context.getSender();
             if (sender == null) return;
+            if (sender.getServer() == null) return;
 
             // Check if target player exists and is online
             ServerPlayer target = sender.getServer().getPlayerList().getPlayerByName(targetName);

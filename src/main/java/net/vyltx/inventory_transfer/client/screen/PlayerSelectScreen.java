@@ -131,14 +131,19 @@ public class PlayerSelectScreen extends Screen {
         // Check if textbox is empty
         String playerName = textbox.getValue().trim();
         if (playerName.isEmpty()) {
-            Minecraft.getInstance().player.displayClientMessage(Component.literal("Please enter a player name."), true);
+            Minecraft mc = Minecraft.getInstance();
+            if (mc.player == null) return;
+
+            mc.player.displayClientMessage(Component.literal("Please enter a player name."), true);
             return;
         }
 
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return;
         // Check if the target is yourself
-        String callerName = Minecraft.getInstance().player.getGameProfile().getName();
+        String callerName = mc.player.getGameProfile().getName();
         if (callerName.equalsIgnoreCase(playerName)) {
-            Minecraft.getInstance().player.displayClientMessage(Component.literal("Target can not be yourself, must be another player."), true);
+            mc.player.displayClientMessage(Component.literal("Target can not be yourself, must be another player."), true);
             return;
         }
 
